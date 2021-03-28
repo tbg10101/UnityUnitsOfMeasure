@@ -1,0 +1,15 @@
+{
+  "name": "com.10101software.unitsofmeasure",
+  "description": "Units of measure library for Unity.",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "displayName": "Units of Measure",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tbg10101/UnityUnitsOfMeasure.git"
+  },
+  "type": "library",
+  "dependencies": {
+    "com.unity.test-framework": "1.1.24"
+  }
+}

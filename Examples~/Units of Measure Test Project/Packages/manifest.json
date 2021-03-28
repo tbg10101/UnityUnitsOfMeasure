@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "com.10101software.unitsofmeasure": "file:D:/Software Projects/UnityUnitsOfMeasure",
+    "com.unity.ide.rider": "1.1.4",
+    "com.unity.test-framework": "1.1.24",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0"
+  },
+  "testables": [
+    "com.10101software.unitsofmeasure"
+  ]
+}
