@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Volume {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Volume : IEquatable<Volume>, IComparable<Volume> {
 		private const string UnitString = "km³";
 
 		public static readonly Volume ZeroVolume      = 0.0;               // km³
@@ -79,6 +81,10 @@
 			return first * second._kmCubed;
 		}
 
+		public static VolumetricFlowRate operator /(Volume first, Duration second) {
+			return VolumetricFlowRate.From(first, second);
+		}
+
 		public static double operator /(Volume first, Volume second) {
 			return first._kmCubed / second._kmCubed;
 		}
@@ -100,6 +106,37 @@
 
 		public static Mass operator *(Volume volume, Density density) {
 			return density.To(Density.From(Mass.Kilogram, CubicMeter)) * volume.To(CubicMeter);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Volume other) {
+			return _kmCubed.Equals(other._kmCubed);
+		}
+
+		public bool Equals(Volume other, Volume delta) {
+			return Math.Abs(_kmCubed - other._kmCubed) < Math.Abs(delta._kmCubed);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Volume other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _kmCubed.GetHashCode();
+		}
+
+		public static bool operator ==(Volume first, Volume second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Volume first, Volume second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Volume other) {
+			return _kmCubed.CompareTo(other._kmCubed);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

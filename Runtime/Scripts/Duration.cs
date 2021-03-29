@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Duration {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Duration : IEquatable<Duration>, IComparable<Duration> {
 		private const string UnitString = "s";
 
 		public static readonly Duration ZeroTime    =   0.0;           // s
@@ -122,6 +124,37 @@
 
 		public static Duration operator /(Duration first, float second) {
 			return first._seconds / second;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Duration other) {
+			return _seconds.Equals(other._seconds);
+		}
+
+		public bool Equals(Duration other, Duration delta) {
+			return Math.Abs(_seconds - other._seconds) < Math.Abs(delta._seconds);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Duration other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _seconds.GetHashCode();
+		}
+
+		public static bool operator ==(Duration first, Duration second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Duration first, Duration second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Duration other) {
+			return _seconds.CompareTo(other._seconds);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

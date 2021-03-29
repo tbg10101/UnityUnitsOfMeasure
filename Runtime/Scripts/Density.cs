@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Density {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Density : IEquatable<Density>, IComparable<Density> {
 		private const string UnitString = "g/cm³";
 
 		public static readonly Density ZeroDensity = 0.0; // g/cm³
@@ -69,6 +71,37 @@
 		/////////////////////////////////////////////////////////////////////////////
 		public static Mass operator *(Density density, Volume volume) {
 			return density._mass * (volume / density._volume);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Density other) {
+			return _mass.Equals(other._mass) && _volume.Equals(other._volume);
+		}
+
+		public bool Equals(Density other, Density delta) {
+			return Math.Abs(To(Water) - other.To(Water)) < Math.Abs(delta.To(Water));
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Density other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _mass.GetHashCode() ^ _volume.GetHashCode();
+		}
+
+		public static bool operator ==(Density first, Density second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Density first, Density second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Density other) {
+			return To(Water).CompareTo(other.To(Water));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Mass {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Mass : IEquatable<Mass>, IComparable<Mass> {
 		private const string UnitString = "g";
 
 		public static readonly Mass ZeroMass    =                               0.0;   // kg
@@ -98,6 +100,37 @@
 		/////////////////////////////////////////////////////////////////////////////
 		public static Density operator /(Mass mass, Volume volume) {
 			return new Density(mass, volume);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Mass other) {
+			return _kilograms.Equals(other._kilograms);
+		}
+
+		public bool Equals(Mass other, Mass delta) {
+			return Math.Abs(_kilograms - other._kilograms) < Math.Abs(delta._kilograms);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Mass other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _kilograms.GetHashCode();
+		}
+
+		public static bool operator ==(Mass first, Mass second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Mass first, Mass second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Mass other) {
+			return _kilograms.CompareTo(other._kilograms);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

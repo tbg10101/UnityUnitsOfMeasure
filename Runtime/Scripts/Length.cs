@@ -1,15 +1,19 @@
-﻿namespace Software10101.Units {
-	public readonly struct Length {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Length : IEquatable<Length>, IComparable<Length> {
 		private const string UnitString = "m";
 
-		public static readonly Length ZeroLength       =             0.0;     // km
-		public static readonly Length Centimeter       =             0.00001; // km
-		public static readonly Length Meter            =             0.001;   // km
-		public static readonly Length Kilometer        =             1.0;     // km
-		public static readonly Length EarthRadius      =          6371.0;     // km
-		public static readonly Length SolarRadius      =        695700.0;     // km
-		public static readonly Length AstronomicalUnit =     149597870.7;     // km
-		public static readonly Length LightYear        = 9460730472580.8;     // km
+		public static readonly Length ZeroLength       =             0.0;         // km
+		public static readonly Length Micrometer       =             0.000000001; // km
+		public static readonly Length Millimeter       =             0.000001;    // km
+		public static readonly Length Centimeter       =             0.00001;     // km
+		public static readonly Length Meter            =             0.001;       // km
+		public static readonly Length Kilometer        =             1.0;         // km
+		public static readonly Length EarthRadius      =          6371.0;         // km
+		public static readonly Length SolarRadius      =        695700.0;         // km
+		public static readonly Length AstronomicalUnit =     149597870.7;         // km
+		public static readonly Length LightYear        = 9460730472580.8;         // km
 		public static readonly Length MaxLength        = double.MaxValue;
 
 		private readonly double _kilometers;
@@ -104,6 +108,37 @@
 
 		public static Volume operator *(Length first, Area second) {
 			return first._kilometers * second.To(Area.SquareKilometer);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Length other) {
+			return _kilometers.Equals(other._kilometers);
+		}
+
+		public bool Equals(Length other, Length delta) {
+			return Math.Abs(_kilometers - other._kilometers) < Math.Abs(delta._kilometers);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Length other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _kilometers.GetHashCode();
+		}
+
+		public static bool operator ==(Length first, Length second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Length first, Length second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Length other) {
+			return _kilometers.CompareTo(other._kilometers);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

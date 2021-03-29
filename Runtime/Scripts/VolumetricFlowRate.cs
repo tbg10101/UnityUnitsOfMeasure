@@ -1,9 +1,11 @@
-﻿namespace Software10101.Units {
-	public readonly struct VolumetricFlowRate {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct VolumetricFlowRate : IEquatable<VolumetricFlowRate>, IComparable<VolumetricFlowRate> {
 		private const string UnitString = "m³/s";
 
 		public static readonly VolumetricFlowRate ZeroRate            = 0.0; // m³/s
-		public static readonly VolumetricFlowRate MeterCubedPerSecond = 1.0; // m³/s
+		public static readonly VolumetricFlowRate MeterCubedPerSecond = Volume.CubicMeter / Duration.Second;
 		public static readonly VolumetricFlowRate MaxRate             = double.MaxValue;
 
 		private readonly Volume _volume;
@@ -93,6 +95,37 @@
 		/////////////////////////////////////////////////////////////////////////////
 		public static Volume operator *(VolumetricFlowRate volumetricFlowRate, Duration duration) {
 			return volumetricFlowRate._volume * (duration / volumetricFlowRate._duration);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(VolumetricFlowRate other) {
+			return _volume.Equals(other._volume) && _duration.Equals(other._duration);
+		}
+
+		public bool Equals(VolumetricFlowRate other, VolumetricFlowRate delta) {
+			return Math.Abs(To(MeterCubedPerSecond) - other.To(MeterCubedPerSecond)) < Math.Abs(delta.To(MeterCubedPerSecond));
+		}
+
+		public override bool Equals(object obj) {
+			return obj is VolumetricFlowRate other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _volume.GetHashCode() ^ _duration.GetHashCode();
+		}
+
+		public static bool operator ==(VolumetricFlowRate first, VolumetricFlowRate second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(VolumetricFlowRate first, VolumetricFlowRate second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(VolumetricFlowRate other) {
+			return To(MeterCubedPerSecond).CompareTo(other.To(MeterCubedPerSecond));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

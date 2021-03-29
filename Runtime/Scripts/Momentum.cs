@@ -1,8 +1,10 @@
-﻿namespace Software10101.Units {
-	public readonly struct Momentum {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Momentum : IEquatable<Momentum>, IComparable<Momentum> {
 		private const string UnitString = "kg⋅m/s";
 
-		public static readonly Momentum ZeroMomentum           = 0.0; // kg⋅m/s
+		public static readonly Momentum ZeroMomentum           = 0.0;                                  // kg⋅m/s
 		public static readonly Momentum KilogramMeterPerSecond = Mass.Kilogram * Speed.MeterPerSecond; // kg⋅m/s
 		public static readonly Momentum MaxMomentum            = double.MaxValue;
 
@@ -73,6 +75,37 @@
 
 		public static Speed operator /(Momentum momentum, Mass mass) {
 			return new Speed(momentum._speed * (momentum._mass / mass));
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Momentum other) {
+			return _mass.Equals(other._mass) && _speed.Equals(other._speed);
+		}
+
+		public bool Equals(Momentum other, Momentum delta) {
+			return Math.Abs(To(KilogramMeterPerSecond) - other.To(KilogramMeterPerSecond)) < Math.Abs(delta.To(KilogramMeterPerSecond));
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Momentum other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _mass.GetHashCode() ^ _speed.GetHashCode();
+		}
+
+		public static bool operator ==(Momentum first, Momentum second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Momentum first, Momentum second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Momentum other) {
+			return To(KilogramMeterPerSecond).CompareTo(other.To(KilogramMeterPerSecond));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

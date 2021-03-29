@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Temperature {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Temperature : IEquatable<Temperature>, IComparable<Temperature> {
 		private const string UnitString = "K";
 
 		public static Temperature AbsoluteZero   =   0.0;  // K
@@ -92,6 +94,37 @@
 
 		public static double operator /(Temperature first, Temperature second) {
 			return first._kelvin / second._kelvin;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Temperature other) {
+			return _kelvin.Equals(other._kelvin);
+		}
+
+		public bool Equals(Temperature other, Temperature delta) {
+			return Math.Abs(_kelvin - other._kelvin) < Math.Abs(delta._kelvin);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Temperature other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _kelvin.GetHashCode();
+		}
+
+		public static bool operator ==(Temperature first, Temperature second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Temperature first, Temperature second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Temperature other) {
+			return _kelvin.CompareTo(other._kelvin);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,7 @@
-﻿namespace Software10101.Units {
-	public readonly struct Speed {
+﻿using System;
+
+namespace Software10101.Units {
+	public readonly struct Speed : IEquatable<Speed>, IComparable<Speed> {
 		private const string UnitString = "m/s";
 
 		public static readonly Speed ZeroSpeed        = 0.0; // m/s
@@ -95,6 +97,37 @@
 		/////////////////////////////////////////////////////////////////////////////
 		public static Length operator *(Speed speed, Duration duration) {
 			return speed._length * (duration / speed._duration);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// EQUALITY
+		/////////////////////////////////////////////////////////////////////////////
+		public bool Equals(Speed other) {
+			return _length.Equals(other._length) && _duration.Equals(other._duration);
+		}
+
+		public bool Equals(Speed other, Speed delta) {
+			return Math.Abs(To(MeterPerSecond) - other.To(MeterPerSecond)) < Math.Abs(delta.To(MeterPerSecond));
+		}
+
+		public override bool Equals(object obj) {
+			return obj is Speed other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return _length.GetHashCode() ^ _duration.GetHashCode();
+		}
+
+		public static bool operator ==(Speed first, Speed second) {
+			return first.Equals(second);
+		}
+
+		public static bool operator !=(Speed first, Speed second) {
+			return !first.Equals(second);
+		}
+
+		public int CompareTo(Speed other) {
+			return To(MeterPerSecond).CompareTo(other.To(MeterPerSecond));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
