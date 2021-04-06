@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Volume : IEquatable<Volume>, IComparable<Volume> {
+	[Serializable]
+	public readonly struct Volume : IEquatable<Volume>, IComparable<Volume>, ISerializable {
 		private const string UnitString = "km³";
 
 		public static readonly Volume ZeroVolume      = 0.0;               // km³
@@ -44,6 +46,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Volume v) {
 			return v._kmCubed;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Volume(SerializationInfo info, StreamingContext context) {
+			_kmCubed = info.GetDouble("kmCubed");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("kmCubed", _kmCubed);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

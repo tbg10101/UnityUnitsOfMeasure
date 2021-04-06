@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Density : IEquatable<Density>, IComparable<Density> {
+	[Serializable]
+	public readonly struct Density : IEquatable<Density>, IComparable<Density>, ISerializable {
 		private const string UnitString = "g/cm³";
 
 		public static readonly Density ZeroDensity = 0.0; // g/cm³
@@ -45,6 +47,19 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Density p) {
 			return p.To(Water);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Density(SerializationInfo info, StreamingContext context) {
+			_mass = (Mass)info.GetValue("mass", typeof(Mass));
+			_volume = (Volume)info.GetValue("volume", typeof(Volume));
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("mass", _mass, typeof(Mass));
+			info.AddValue("volume", _volume, typeof(Volume));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

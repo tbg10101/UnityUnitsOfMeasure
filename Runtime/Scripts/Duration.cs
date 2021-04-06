@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Duration : IEquatable<Duration>, IComparable<Duration> {
+	[Serializable]
+	public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, ISerializable {
 		private const string UnitString = "s";
 
 		public static readonly Duration ZeroTime    =   0.0;           // s
@@ -53,6 +55,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Duration d) {
 			return d._seconds;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Duration(SerializationInfo info, StreamingContext context) {
+			_seconds = info.GetDouble("seconds");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("seconds", _seconds);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

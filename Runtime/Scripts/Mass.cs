@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Mass : IEquatable<Mass>, IComparable<Mass> {
+	[Serializable]
+	public readonly struct Mass : IEquatable<Mass>, IComparable<Mass>, ISerializable {
 		private const string UnitString = "g";
 
 		public static readonly Mass ZeroMass    =                               0.0;   // kg
@@ -46,6 +48,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Mass m) {
 			return m._kilograms;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Mass(SerializationInfo info, StreamingContext context) {
+			_kilograms = info.GetDouble("kilograms");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("kilograms", _kilograms);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

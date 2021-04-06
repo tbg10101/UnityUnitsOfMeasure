@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Momentum : IEquatable<Momentum>, IComparable<Momentum> {
+	[Serializable]
+	public readonly struct Momentum : IEquatable<Momentum>, IComparable<Momentum>, ISerializable {
 		private const string UnitString = "kg⋅m/s";
 
 		public static readonly Momentum ZeroMomentum           = 0.0;                                  // kg⋅m/s
@@ -45,6 +47,19 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Momentum p) {
 			return p.To(KilogramMeterPerSecond);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Momentum(SerializationInfo info, StreamingContext context) {
+			_mass = (Mass)info.GetValue("mass", typeof(Mass));
+			_speed = (Speed)info.GetValue("speed", typeof(Speed));
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("mass", _mass, typeof(Mass));
+			info.AddValue("speed", _speed, typeof(Speed));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Length : IEquatable<Length>, IComparable<Length> {
+	[Serializable]
+	public readonly struct Length : IEquatable<Length>, IComparable<Length>, ISerializable {
 		private const string UnitString = "m";
 
 		public static readonly Length ZeroLength       =             0.0;         // km
@@ -50,6 +52,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Length l) {
 			return l._kilometers;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Length(SerializationInfo info, StreamingContext context) {
+			_kilometers = info.GetDouble("kilometers");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("kilometers", _kilometers);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

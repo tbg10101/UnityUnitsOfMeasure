@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Area : IEquatable<Area>, IComparable<Area> {
+	[Serializable]
+	public readonly struct Area : IEquatable<Area>, IComparable<Area>, ISerializable {
 		private const string UnitString = "km²";
 
 		public static readonly Area ZeroArea        = 0.0; // km²
@@ -42,6 +44,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Area a) {
 			return a._kmSquared;
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Area(SerializationInfo info, StreamingContext context) {
+			_kmSquared = info.GetDouble("kmSquared");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("kmSquared", _kmSquared);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

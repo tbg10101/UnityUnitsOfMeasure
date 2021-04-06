@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Temperature : IEquatable<Temperature>, IComparable<Temperature> {
+	[Serializable]
+	public readonly struct Temperature : IEquatable<Temperature>, IComparable<Temperature>, ISerializable {
 		private const string UnitString = "K";
 
 		public static Temperature AbsoluteZero   =   0.0;  // K
@@ -51,6 +53,17 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Temperature t) {
 			return t.ToKelvin();
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Temperature(SerializationInfo info, StreamingContext context) {
+			_kelvin = info.GetDouble("kelvin");
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("kelvin", _kelvin);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

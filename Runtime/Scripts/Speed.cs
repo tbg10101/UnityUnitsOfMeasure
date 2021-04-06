@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct Speed : IEquatable<Speed>, IComparable<Speed> {
+	[Serializable]
+	public readonly struct Speed : IEquatable<Speed>, IComparable<Speed>, ISerializable {
 		private const string UnitString = "m/s";
 
 		public static readonly Speed ZeroSpeed        = 0.0; // m/s
@@ -47,6 +49,19 @@ namespace Software10101.Units {
 
 		public static implicit operator double(Speed s) {
 			return s.To(MeterPerSecond);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public Speed(SerializationInfo info, StreamingContext context) {
+			_length = (Length)info.GetValue("length", typeof(Length));
+			_duration = (Duration)info.GetValue("duration", typeof(Duration));
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("length", _length, typeof(Length));
+			info.AddValue("duration", _duration, typeof(Duration));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////

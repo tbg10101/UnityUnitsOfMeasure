@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Software10101.Units {
-	public readonly struct VolumetricFlowRate : IEquatable<VolumetricFlowRate>, IComparable<VolumetricFlowRate> {
+	[Serializable]
+	public readonly struct VolumetricFlowRate : IEquatable<VolumetricFlowRate>, IComparable<VolumetricFlowRate>, ISerializable {
 		private const string UnitString = "m³/s";
 
 		public static readonly VolumetricFlowRate ZeroRate            = 0.0; // m³/s
@@ -45,6 +47,19 @@ namespace Software10101.Units {
 
 		public static implicit operator double(VolumetricFlowRate q) {
 			return q.To(MeterCubedPerSecond);
+		}
+
+		/////////////////////////////////////////////////////////////////////////////
+		// SERIALIZATION
+		/////////////////////////////////////////////////////////////////////////////
+		public VolumetricFlowRate(SerializationInfo info, StreamingContext context) {
+			_volume = (Volume)info.GetValue("volume", typeof(Volume));
+			_duration = (Duration)info.GetValue("duration", typeof(Duration));
+		}
+
+		public void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("volume", _volume, typeof(Volume));
+			info.AddValue("duration", _duration, typeof(Duration));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
