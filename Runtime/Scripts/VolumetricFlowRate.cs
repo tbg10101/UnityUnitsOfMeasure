@@ -1,41 +1,38 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct VolumetricFlowRate : IEquatable<VolumetricFlowRate>, IComparable<VolumetricFlowRate>, ISerializable {
+	public struct VolumetricFlowRate : IEquatable<VolumetricFlowRate>, IComparable<VolumetricFlowRate>, ISerializable {
 		private const string UnitString = "m³/s";
 
-		public static readonly VolumetricFlowRate ZeroRate            = 0.0; // m³/s
-		public static readonly VolumetricFlowRate MeterCubedPerSecond = Volume.CubicMeter / Duration.Second;
-		public static readonly VolumetricFlowRate MaxRate             = double.MaxValue;
+		public static readonly VolumetricFlowRate ZeroRate            = new VolumetricFlowRate();
+		public static readonly VolumetricFlowRate MeterCubedPerSecond = new VolumetricFlowRate {
+			_volume = Volume.CubicMeter,
+			_duration = Duration.Second
+		};
 
-		private readonly Volume _volume;
-		private readonly Duration _duration;
+		[SerializeField]
+		internal Volume _volume;
+
+		[SerializeField]
+		internal Duration _duration;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public VolumetricFlowRate(double q) {
-			_volume = Volume.From(q, Volume.CubicMeter);
-			_duration = Duration.Second;
-		}
-
 		public VolumetricFlowRate(Volume v, Duration d) {
 			_volume = v;
 			_duration = d;
 		}
 
-		public static VolumetricFlowRate From(double q) {
-			return new VolumetricFlowRate(q);
-		}
-
 		public static VolumetricFlowRate From(Volume v, Duration d) {
 			return new VolumetricFlowRate(v, d);
-		}
-
-		public static implicit operator VolumetricFlowRate(double q) {
-			return From(q);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -45,64 +42,51 @@ namespace Software10101.Units {
 			return _volume.To(unit._volume) / _duration.To(unit._duration);
 		}
 
-		public static implicit operator double(VolumetricFlowRate q) {
-			return q.To(MeterCubedPerSecond);
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string VolumeSerializedFieldName = "volume";
+		private const string DurationSerializedFieldName = "duration";
+
 		public VolumetricFlowRate(SerializationInfo info, StreamingContext context) {
-			_volume = (Volume)info.GetValue("volume", typeof(Volume));
-			_duration = (Duration)info.GetValue("duration", typeof(Duration));
+			_volume = (Volume)info.GetValue(VolumeSerializedFieldName, typeof(Volume));
+			_duration = (Duration)info.GetValue(DurationSerializedFieldName, typeof(Duration));
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("volume", _volume, typeof(Volume));
-			info.AddValue("duration", _duration, typeof(Duration));
+			info.AddValue(VolumeSerializedFieldName, _volume, typeof(Volume));
+			info.AddValue(DurationSerializedFieldName, _duration, typeof(Duration));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static VolumetricFlowRate operator +(VolumetricFlowRate first, VolumetricFlowRate second) {
-			return first.To(MeterCubedPerSecond) + second.To(MeterCubedPerSecond);
-		}
-
-		public static VolumetricFlowRate operator +(VolumetricFlowRate first, double second) {
-			return first.To(MeterCubedPerSecond) + second;
-		}
-
-		public static VolumetricFlowRate operator +(double first, VolumetricFlowRate second) {
-			return first + second.To(MeterCubedPerSecond);
+			return new VolumetricFlowRate(
+				Volume.From(first.To(MeterCubedPerSecond) + second.To(MeterCubedPerSecond), Volume.CubicMeter),
+				Duration.Second);
 		}
 
 		public static VolumetricFlowRate operator -(VolumetricFlowRate first, VolumetricFlowRate second) {
-			return first.To(MeterCubedPerSecond) - second.To(MeterCubedPerSecond);
-		}
-
-		public static VolumetricFlowRate operator -(VolumetricFlowRate first, double second) {
-			return first.To(MeterCubedPerSecond) - second;
-		}
-
-		public static VolumetricFlowRate operator -(double first, VolumetricFlowRate second) {
-			return first - second.To(MeterCubedPerSecond);
+			return new VolumetricFlowRate(
+				Volume.From(first.To(MeterCubedPerSecond) - second.To(MeterCubedPerSecond), Volume.CubicMeter),
+				Duration.Second);
 		}
 
 		public static VolumetricFlowRate operator *(VolumetricFlowRate first, double second) {
-			return first.To(MeterCubedPerSecond) * second;
+			return new VolumetricFlowRate(first._volume * second, first._duration);
 		}
 
 		public static VolumetricFlowRate operator *(double first, VolumetricFlowRate second) {
-			return first * second.To(MeterCubedPerSecond);
+			return new VolumetricFlowRate(first * second._volume, second._duration);
 		}
 
 		public static double operator /(VolumetricFlowRate first, VolumetricFlowRate second) {
-			return first.To(MeterCubedPerSecond) / second.To(MeterCubedPerSecond);
+			return first.To(second);
 		}
 
 		public static VolumetricFlowRate operator /(VolumetricFlowRate first, double second) {
-			return first.To(MeterCubedPerSecond) / second;
+			return new VolumetricFlowRate(first._volume / second, first._duration);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -127,6 +111,7 @@ namespace Software10101.Units {
 			return obj is VolumetricFlowRate other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _volume.GetHashCode() ^ _duration.GetHashCode();
 		}

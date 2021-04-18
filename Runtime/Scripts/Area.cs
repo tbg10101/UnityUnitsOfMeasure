@@ -1,95 +1,70 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Area : IEquatable<Area>, IComparable<Area>, ISerializable {
+	public struct Area : IEquatable<Area>, IComparable<Area>, ISerializable {
 		private const string UnitString = "km²";
 
-		public static readonly Area ZeroArea        = 0.0; // km²
-		public static readonly Area SquareKilometer = 1.0; // km²
-		public static readonly Area MaxArea         = double.MaxValue;
+		public static readonly Area ZeroArea        = new Area();
+		public static readonly Area SquareKilometer = new Area { _kmSquared = 1.0 };
 
-		private readonly double _kmSquared;
+		[SerializeField]
+		internal double _kmSquared;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Area(double a) {
-			_kmSquared = a;
-		}
-
 		public Area(double a, Area unit) {
 			_kmSquared = a * unit._kmSquared;
-		}
-
-		public static Area From(double a) {
-			return new Area(a);
 		}
 
 		public static Area From(double a, Area unit) {
 			return new Area(a, unit);
 		}
 
-		public static implicit operator Area(double a) {
-			return From(a);
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// UN-BOXING
 		/////////////////////////////////////////////////////////////////////////////
 		public double To(Area unit) {
-			return _kmSquared / unit;
-		}
-
-		public static implicit operator double(Area a) {
-			return a._kmSquared;
+			return _kmSquared / unit._kmSquared;
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
-		public Area(SerializationInfo info, StreamingContext context) {
-			_kmSquared = info.GetDouble("kmSquared");
+		private const string KmSquaredSerializedFieldName = "kmSquared";
+
+		public Area(SerializationInfo info, StreamingContext context) : this() {
+			_kmSquared = info.GetDouble(KmSquaredSerializedFieldName);
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("kmSquared", _kmSquared);
+			info.AddValue(KmSquaredSerializedFieldName, _kmSquared);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Area operator +(Area first, Area second) {
-			return first._kmSquared + second._kmSquared;
-		}
-
-		public static Area operator +(Area first, double second) {
-			return first._kmSquared + second;
-		}
-
-		public static Area operator +(double first, Area second) {
-			return first + second._kmSquared;
+			return new Area { _kmSquared = first._kmSquared + second._kmSquared };
 		}
 
 		public static Area operator -(Area first, Area second) {
-			return first._kmSquared - second._kmSquared;
-		}
-
-		public static Area operator -(Area first, double second) {
-			return first._kmSquared - second;
-		}
-
-		public static Area operator -(double first, Area second) {
-			return first - second._kmSquared;
+			return new Area { _kmSquared = first._kmSquared - second._kmSquared };
 		}
 
 		public static Area operator *(Area first, double second) {
-			return first._kmSquared * second;
+			return new Area { _kmSquared = first._kmSquared * second };
 		}
 
 		public static Area operator *(double first, Area second) {
-			return first * second._kmSquared;
+			return new Area { _kmSquared = first * second._kmSquared };
 		}
 
 		public static double operator /(Area first, Area second) {
@@ -97,18 +72,18 @@ namespace Software10101.Units {
 		}
 
 		public static Area operator /(Area first, double second) {
-			return first._kmSquared / second;
+			return new Area { _kmSquared = first._kmSquared / second };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// MUTATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Length operator /(Area area, Length length) {
-			return area._kmSquared / length.To(Length.Kilometer);
+			return new Length { _kilometers = area._kmSquared / length._kilometers };
 		}
 
 		public static Volume operator *(Area first, Length second) {
-			return first._kmSquared * second.To(Length.Kilometer);
+			return new Volume { _kmCubed = first._kmSquared * second._kilometers };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -126,6 +101,7 @@ namespace Software10101.Units {
 			return obj is Area other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _kmSquared.GetHashCode();
 		}

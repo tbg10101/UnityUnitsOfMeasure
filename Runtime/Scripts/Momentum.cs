@@ -1,41 +1,35 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Momentum : IEquatable<Momentum>, IComparable<Momentum>, ISerializable {
+	public struct Momentum : IEquatable<Momentum>, IComparable<Momentum>, ISerializable {
 		private const string UnitString = "kg⋅m/s";
 
-		public static readonly Momentum ZeroMomentum           = 0.0;                                  // kg⋅m/s
-		public static readonly Momentum KilogramMeterPerSecond = Mass.Kilogram * Speed.MeterPerSecond; // kg⋅m/s
-		public static readonly Momentum MaxMomentum            = double.MaxValue;
+		public static readonly Momentum ZeroMomentum = new Momentum { _mass = Mass.ZeroMass, _speed = Speed.MeterPerSecond };
+		public static readonly Momentum NewtonSecond = new Momentum { _mass = Mass.Kilogram, _speed = Speed.MeterPerSecond };
 
-		private readonly Mass _mass;
-		private readonly Speed _speed;
+		[SerializeField]
+		internal Mass _mass;
+
+		[SerializeField]
+		internal Speed _speed;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Momentum(double d) {
-			_mass = Mass.From(d, Mass.Gram);
-			_speed = Speed.MeterPerSecond;
-		}
-
 		public Momentum(Mass m, Speed s) {
 			_mass = m;
 			_speed = s;
 		}
 
-		public static Momentum From(double p) {
-			return new Momentum(p);
-		}
-
 		public static Momentum From(Mass m, Speed s) {
 			return new Momentum(m, s);
-		}
-
-		public static implicit operator Momentum(double p) {
-			return From(p);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -45,21 +39,20 @@ namespace Software10101.Units {
 			return _mass.To(unit._mass) / _speed.To(unit._speed);
 		}
 
-		public static implicit operator double(Momentum p) {
-			return p.To(KilogramMeterPerSecond);
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string MassSerializedFieldName = "mass";
+		private const string SpeedSerializedFieldName = "speed";
+
 		public Momentum(SerializationInfo info, StreamingContext context) {
-			_mass = (Mass)info.GetValue("mass", typeof(Mass));
-			_speed = (Speed)info.GetValue("speed", typeof(Speed));
+			_mass = (Mass)info.GetValue(MassSerializedFieldName, typeof(Mass));
+			_speed = (Speed)info.GetValue(SpeedSerializedFieldName, typeof(Speed));
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("mass", _mass, typeof(Mass));
-			info.AddValue("speed", _speed, typeof(Speed));
+			info.AddValue(MassSerializedFieldName, _mass, typeof(Mass));
+			info.AddValue(SpeedSerializedFieldName, _speed, typeof(Speed));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -70,11 +63,11 @@ namespace Software10101.Units {
 		}
 
 		public static Momentum operator *(double first, Momentum second) {
-			return new Momentum(second._mass * first, second._speed);
+			return new Momentum(first * second._mass, second._speed);
 		}
 
 		public static double operator /(Momentum first, Momentum second) {
-			return first.To(KilogramMeterPerSecond) / second.To(KilogramMeterPerSecond);
+			return first.To(second);
 		}
 
 		public static Momentum operator /(Momentum first, double second) {
@@ -89,7 +82,7 @@ namespace Software10101.Units {
 		}
 
 		public static Speed operator /(Momentum momentum, Mass mass) {
-			return new Speed(momentum._speed * (momentum._mass / mass));
+			return momentum._speed * (momentum._mass / mass);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -100,13 +93,14 @@ namespace Software10101.Units {
 		}
 
 		public bool Equals(Momentum other, Momentum delta) {
-			return Math.Abs(To(KilogramMeterPerSecond) - other.To(KilogramMeterPerSecond)) < Math.Abs(delta.To(KilogramMeterPerSecond));
+			return Math.Abs(To(NewtonSecond) - other.To(NewtonSecond)) < Math.Abs(delta.To(NewtonSecond));
 		}
 
 		public override bool Equals(object obj) {
 			return obj is Momentum other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _mass.GetHashCode() ^ _speed.GetHashCode();
 		}
@@ -120,7 +114,7 @@ namespace Software10101.Units {
 		}
 
 		public int CompareTo(Momentum other) {
-			return To(KilogramMeterPerSecond).CompareTo(other.To(KilogramMeterPerSecond));
+			return To(NewtonSecond).CompareTo(other.To(NewtonSecond));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -131,7 +125,7 @@ namespace Software10101.Units {
 		}
 
 		public string ToStringKilogramMetersPerSecond() {
-			return $"{To(KilogramMeterPerSecond):F2}{UnitString}";
+			return $"{To(NewtonSecond):F2}{UnitString}";
 		}
 	}
 }

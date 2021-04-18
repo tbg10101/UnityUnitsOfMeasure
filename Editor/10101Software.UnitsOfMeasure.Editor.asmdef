@@ -1,0 +1,17 @@
+{
+    "name": "10101Software.UnitsOfMeasure.Editor",
+    "references": [
+        "GUID:0b8a30c4d9cf81f4dad2b9ffb15f40d6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

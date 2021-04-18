@@ -1,42 +1,34 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Mass : IEquatable<Mass>, IComparable<Mass>, ISerializable {
+	public struct Mass : IEquatable<Mass>, IComparable<Mass>, ISerializable {
 		private const string UnitString = "g";
 
-		public static readonly Mass ZeroMass    =                               0.0;   // kg
-		public static readonly Mass Gram        =                               0.001; // kg
-		public static readonly Mass Kilogram    =                               1.0;   // kg
-		public static readonly Mass EarthMass   =       5972200000000000000000000.0;   // kg
-		public static readonly Mass JupiterMass =    1898000000000000000000000000.0;   // kg
-		public static readonly Mass SolarMass   = 1988550000000000000000000000000.0;   // kg
-		public static readonly Mass MaxMass     = double.MaxValue;
+		public static readonly Mass ZeroMass  = new Mass();
+		public static readonly Mass Gram      = new Mass { _kilograms =                               0.001 };
+		public static readonly Mass Kilogram  = new Mass { _kilograms =                               1.0 };
+		public static readonly Mass EarthMass = new Mass { _kilograms =       5972200000000000000000000.0 };
+		public static readonly Mass SolarMass = new Mass { _kilograms = 1988550000000000000000000000000.0 };
 
-		private readonly double _kilograms;
+		[SerializeField]
+		internal double _kilograms;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Mass(double kg) {
-			_kilograms = kg;
-		}
-
 		public Mass(double m, Mass unit) {
-			_kilograms = m * unit;
-		}
-
-		public static Mass From(double kg) {
-			return new Mass(kg);
+			_kilograms = m * unit._kilograms;
 		}
 
 		public static Mass From(double m, Mass unit) {
 			return new Mass(m, unit);
-		}
-
-		public static implicit operator Mass(double kg) {
-			return From(kg);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -46,58 +38,36 @@ namespace Software10101.Units {
 			return _kilograms / unit._kilograms;
 		}
 
-		public static implicit operator double(Mass m) {
-			return m._kilograms;
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string KilogramsSerializedFieldName = "kilograms";
+
 		public Mass(SerializationInfo info, StreamingContext context) {
-			_kilograms = info.GetDouble("kilograms");
+			_kilograms = info.GetDouble(KilogramsSerializedFieldName);
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("kilograms", _kilograms);
+			info.AddValue(KilogramsSerializedFieldName, _kilograms);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Mass operator +(Mass first, Mass second) {
-			return first._kilograms + second._kilograms;
-		}
-
-		public static Mass operator +(Mass first, double second) {
-			return first._kilograms + second;
-		}
-
-		public static Mass operator +(double first, Mass second) {
-			return first + second._kilograms;
+			return new Mass { _kilograms = first._kilograms + second._kilograms };
 		}
 
 		public static Mass operator -(Mass first, Mass second) {
-			return first._kilograms - second._kilograms;
-		}
-
-		public static Mass operator -(Mass first, double second) {
-			return first._kilograms - second;
-		}
-
-		public static Mass operator -(double first, Mass second) {
-			return first - second._kilograms;
-		}
-
-		public static Momentum operator *(Mass first, Speed second) {
-			return Momentum.From(first, second);
+			return new Mass { _kilograms = first._kilograms - second._kilograms };
 		}
 
 		public static Mass operator *(Mass first, double second) {
-			return first._kilograms * second;
+			return new Mass { _kilograms = first._kilograms * second };
 		}
 
 		public static Mass operator *(double first, Mass second) {
-			return first * second._kilograms;
+			return new Mass { _kilograms = first * second._kilograms };
 		}
 
 		public static double operator /(Mass first, Mass second) {
@@ -105,7 +75,7 @@ namespace Software10101.Units {
 		}
 
 		public static Mass operator /(Mass first, double second) {
-			return first._kilograms / second;
+			return new Mass { _kilograms = first._kilograms / second };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -113,6 +83,10 @@ namespace Software10101.Units {
 		/////////////////////////////////////////////////////////////////////////////
 		public static Density operator /(Mass mass, Volume volume) {
 			return new Density(mass, volume);
+		}
+
+		public static Momentum operator *(Mass first, Speed second) {
+			return new Momentum(first, second);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -130,6 +104,7 @@ namespace Software10101.Units {
 			return obj is Mass other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _kilograms.GetHashCode();
 		}

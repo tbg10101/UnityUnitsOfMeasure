@@ -1,41 +1,35 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Density : IEquatable<Density>, IComparable<Density>, ISerializable {
+	public struct Density : IEquatable<Density>, IComparable<Density>, ISerializable {
 		private const string UnitString = "g/cm³";
 
-		public static readonly Density ZeroDensity = 0.0; // g/cm³
-		public static readonly Density Water       = 1.0; // g/cm³
-		public static readonly Density MaxDensity  = double.MaxValue;
+		public static readonly Density ZeroDensity = new Density { _mass = Mass.ZeroMass, _volume = Volume.CubicCentimeter };
+		public static readonly Density Water       = new Density { _mass = Mass.Gram, _volume = Volume.CubicCentimeter };
 
-		private readonly Mass _mass;
-		private readonly Volume _volume;
+		[SerializeField]
+		internal Mass _mass;
+
+		[SerializeField]
+		internal Volume _volume;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Density(double d) {
-			_mass = Mass.From(d, Mass.Gram);
-			_volume = Volume.CubicCentimeter;
-		}
-
 		public Density(Mass m, Volume v) {
 			_mass = m;
 			_volume = v;
 		}
 
-		public static Density From(double p) {
-			return new Density(p);
-		}
-
 		public static Density From(Mass m, Volume v) {
 			return new Density(m, v);
-		}
-
-		public static implicit operator Density(double p) {
-			return From(p);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -45,21 +39,20 @@ namespace Software10101.Units {
 			return _mass.To(unit._mass) / _volume.To(unit._volume);
 		}
 
-		public static implicit operator double(Density p) {
-			return p.To(Water);
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string MassSerializedFieldName = "mass";
+		private const string VolumeSerializedFieldName = "volume";
+
 		public Density(SerializationInfo info, StreamingContext context) {
-			_mass = (Mass)info.GetValue("mass", typeof(Mass));
-			_volume = (Volume)info.GetValue("volume", typeof(Volume));
+			_mass = (Mass)info.GetValue(MassSerializedFieldName, typeof(Mass));
+			_volume = (Volume)info.GetValue(VolumeSerializedFieldName, typeof(Volume));
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("mass", _mass, typeof(Mass));
-			info.AddValue("volume", _volume, typeof(Volume));
+			info.AddValue(MassSerializedFieldName, _mass, typeof(Mass));
+			info.AddValue(VolumeSerializedFieldName, _volume, typeof(Volume));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -70,11 +63,11 @@ namespace Software10101.Units {
 		}
 
 		public static Density operator *(double first, Density second) {
-			return new Density(second._mass * first, second._volume);
+			return new Density(first * second._mass, second._volume);
 		}
 
 		public static double operator /(Density first, Density second) {
-			return first.To(Water) / second.To(Water);
+			return first.To(second);
 		}
 
 		public static Density operator /(Density first, double second) {
@@ -103,6 +96,7 @@ namespace Software10101.Units {
 			return obj is Density other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _mass.GetHashCode() ^ _volume.GetHashCode();
 		}

@@ -1,49 +1,42 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, ISerializable {
+	public struct Duration : IEquatable<Duration>, IComparable<Duration>, ISerializable {
 		private const string UnitString = "s";
 
-		public static readonly Duration ZeroTime    =   0.0;           // s
-		public static readonly Duration Nanosecond  =   0.000000001;   // s
-		public static readonly Duration Microsecond =   0.000001;      // s
-		public static readonly Duration Millisecond =   0.001;         // s
-		public static readonly Duration Second      =   1.0;           // s
-		public static readonly Duration Minute      =  60.0;           // s
-		public static readonly Duration Hour        =  60.0 * Minute;
-		public static readonly Duration Day         =  24.0 * Hour;
-		public static readonly Duration Week        =   7.0 * Day;
-		public static readonly Duration Year        = 365.24 * Day;
-		public static readonly Duration Decade      =  10.0 * Year;
-		public static readonly Duration Century     =  10.0 * Decade;
-		public static readonly Duration Millennium  =  10.0 * Century;
-		public static readonly Duration MaxTime     = double.MaxValue;
+		public static readonly Duration ZeroTime    = new Duration();
+		public static readonly Duration Nanosecond  = new Duration { _seconds = 0.000000001 };
+		public static readonly Duration Microsecond = new Duration { _seconds = 0.000001 };
+		public static readonly Duration Millisecond = new Duration { _seconds = 0.001 };
+		public static readonly Duration Second      = new Duration { _seconds = 1.0 };
+		public static readonly Duration Minute      = new Duration( 60.0,  Second);
+		public static readonly Duration Hour        = new Duration( 60.0,  Minute);
+		public static readonly Duration Day         = new Duration( 24.0,  Hour);
+		public static readonly Duration Week        = new Duration(  7.0,  Day);
+		public static readonly Duration Year        = new Duration(365.25, Day);
+		public static readonly Duration Decade      = new Duration( 10.0,  Year);
+		public static readonly Duration Century     = new Duration( 10.0,  Decade);
+		public static readonly Duration Millennium  = new Duration( 10.0,  Century);
 
-		private readonly double _seconds;
+		[SerializeField]
+		internal double _seconds;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Duration(double s) {
-			_seconds = s;
-		}
-
 		public Duration(double d, Duration unit) {
 			_seconds = d * unit._seconds;
 		}
 
-		public static Duration From(double s) {
-			return new Duration(s);
-		}
-
 		public static Duration From(double d, Duration unit) {
 			return new Duration(d, unit);
-		}
-
-		public static implicit operator Duration(double s) {
-			return From(s);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -53,78 +46,36 @@ namespace Software10101.Units {
 			return _seconds / unit._seconds;
 		}
 
-		public static implicit operator double(Duration d) {
-			return d._seconds;
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string SecondsSerializedFieldName = "seconds";
+
 		public Duration(SerializationInfo info, StreamingContext context) {
-			_seconds = info.GetDouble("seconds");
+			_seconds = info.GetDouble(SecondsSerializedFieldName);
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("seconds", _seconds);
+			info.AddValue(SecondsSerializedFieldName, _seconds);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Duration operator +(Duration first, Duration second) {
-			return first._seconds + second._seconds;
-		}
-
-		public static Duration operator +(Duration first, double second) {
-			return first._seconds + second;
-		}
-
-		public static Duration operator +(double first, Duration second) {
-			return first + second._seconds;
-		}
-
-		public static Duration operator +(Duration first, float second) {
-			return first._seconds + second;
-		}
-
-		public static Duration operator +(float first, Duration second) {
-			return first + second._seconds;
+			return new Duration { _seconds = first._seconds + second._seconds };
 		}
 
 		public static Duration operator -(Duration first, Duration second) {
-			return first._seconds - second._seconds;
-		}
-
-		public static Duration operator -(Duration first, double second) {
-			return first._seconds - second;
-		}
-
-		public static Duration operator -(double first, Duration second) {
-			return first - second._seconds;
-		}
-
-		public static Duration operator -(Duration first, float second) {
-			return first._seconds - second;
-		}
-
-		public static Duration operator -(float first, Duration second) {
-			return first - second._seconds;
+			return new Duration { _seconds = first._seconds - second._seconds };
 		}
 
 		public static Duration operator *(Duration first, double second) {
-			return first._seconds * second;
+			return new Duration { _seconds = first._seconds * second };
 		}
 
 		public static Duration operator *(double first, Duration second) {
-			return first * second._seconds;
-		}
-
-		public static Duration operator *(Duration first, float second) {
-			return first._seconds * second;
-		}
-
-		public static Duration operator *(float first, Duration second) {
-			return first * second._seconds;
+			return new Duration { _seconds = first * second._seconds };
 		}
 
 		public static double operator /(Duration first, Duration second) {
@@ -132,11 +83,7 @@ namespace Software10101.Units {
 		}
 
 		public static Duration operator /(Duration first, double second) {
-			return first._seconds / second;
-		}
-
-		public static Duration operator /(Duration first, float second) {
-			return first._seconds / second;
+			return new Duration { _seconds = first._seconds / second };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -154,6 +101,7 @@ namespace Software10101.Units {
 			return obj is Duration other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _seconds.GetHashCode();
 		}

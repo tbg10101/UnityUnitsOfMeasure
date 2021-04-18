@@ -1,39 +1,36 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Temperature : IEquatable<Temperature>, IComparable<Temperature>, ISerializable {
+	public struct Temperature : IEquatable<Temperature>, IComparable<Temperature>, ISerializable {
 		private const string UnitString = "K";
 
-		public static Temperature AbsoluteZero   =   0.0;  // K
-		public static Temperature Freezing       = 273.15; // K
-		public static Temperature Boiling        = 373.15; // K
-		public static Temperature MaxTemperature = double.MaxValue;
+		public static Temperature AbsoluteZero = new Temperature();
+		public static Temperature Freezing     = new Temperature { _kelvin = 273.15 };
+		public static Temperature Boiling      = new Temperature { _kelvin = 373.15 };
 
-		private readonly double _kelvin;
+		[SerializeField]
+		internal double _kelvin;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		public Temperature(double k) {
-			_kelvin = k;
-		}
-
 		public static Temperature FromKelvin(double k) {
-			return new Temperature(k);
+			return new Temperature { _kelvin = k};
 		}
 
 		public static Temperature FromCelsius(double c) {
-			return new Temperature(c + 273.15);
+			return FromKelvin(c + 273.15);
 		}
 
 		public static Temperature FromFahrenheit(double f) {
-			return new Temperature((f + 459.67) * (5.0 / 9.0));
-		}
-
-		public static implicit operator Temperature(double k) {
-			return FromKelvin(k);
+			return FromKelvin((f + 459.67) * (5.0 / 9.0));
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -51,62 +48,44 @@ namespace Software10101.Units {
 			return _kelvin * (9.0 / 5.0) - 459.67;
 		}
 
-		public static implicit operator double(Temperature t) {
-			return t.ToKelvin();
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string KelvinSerializedFieldName = "kelvin";
+
 		public Temperature(SerializationInfo info, StreamingContext context) {
-			_kelvin = info.GetDouble("kelvin");
+			_kelvin = info.GetDouble(KelvinSerializedFieldName);
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("kelvin", _kelvin);
+			info.AddValue(KelvinSerializedFieldName, _kelvin);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Temperature operator +(Temperature first, Temperature second) {
-			return first._kelvin + second._kelvin;
-		}
-
-		public static Temperature operator +(Temperature first, double second) {
-			return first._kelvin + second;
-		}
-
-		public static Temperature operator +(double first, Temperature second) {
-			return first + second._kelvin;
+			return new Temperature { _kelvin = first._kelvin + second._kelvin };
 		}
 
 		public static Temperature operator -(Temperature first, Temperature second) {
-			return first._kelvin - second._kelvin;
-		}
-
-		public static Temperature operator -(Temperature first, double second) {
-			return first._kelvin - second;
-		}
-
-		public static Temperature operator -(double first, Temperature second) {
-			return first - second._kelvin;
+			return new Temperature { _kelvin = first._kelvin - second._kelvin };
 		}
 
 		public static Temperature operator *(Temperature first, double second) {
-			return first._kelvin * second;
+			return new Temperature { _kelvin = first._kelvin * second };
 		}
 
 		public static Temperature operator *(double first, Temperature second) {
-			return first * second._kelvin;
-		}
-
-		public static Temperature operator /(Temperature first, double second) {
-			return first._kelvin / second;
+			return new Temperature { _kelvin = first * second._kelvin };
 		}
 
 		public static double operator /(Temperature first, Temperature second) {
 			return first._kelvin / second._kelvin;
+		}
+
+		public static Temperature operator /(Temperature first, double second) {
+			return new Temperature { _kelvin = first._kelvin / second };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -124,6 +103,7 @@ namespace Software10101.Units {
 			return obj is Temperature other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _kelvin.GetHashCode();
 		}

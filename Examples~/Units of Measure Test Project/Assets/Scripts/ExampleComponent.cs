@@ -1,34 +1,73 @@
 ﻿using Software10101.Units;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ExampleComponent : MonoBehaviour {
-    [SerializeField]
-    public Duration _duration;
+    [Header(nameof(Duration))]
+    public Duration DurationValue;
+    public Duration[] DurationArray;
+    public List<Duration> DurationList;
     
-    [SerializeField]
-    public Mass _mass;
+    [Header(nameof(Mass))]
+    public Mass MassValue;
+    public Mass[] MassArray;
+    public List<Mass> MassList;
     
-    [SerializeField]
-    public Temperature _temperature;
+    [Header(nameof(Temperature))]
+    public Temperature TemperatureValue;
+    public Temperature[] TemperatureArray;
+    public List<Temperature> TemperatureList;
     
-    [SerializeField]
-    public Length _length;
+    [Header(nameof(Length))]
+    public Length LengthValue;
+    public Length[] LengthArray;
+    public List<Length> LengthList;
     
-    [SerializeField]
-    public Area _area;
+    [Header(nameof(Area))]
+    public Area AreaValue;
+    public Area[] AreaArray;
+    public List<Area> AreaList;
     
-    [SerializeField]
-    public Volume _volume;
+    [Header(nameof(Volume))]
+    public Volume VolumeValue;
+    public Volume[] VolumeArray;
+    public List<Volume> VolumeList;
     
-    [SerializeField]
-    public Speed _speed;
+    [Header(nameof(Speed))]
+    public Speed SpeedValue;
+    public Speed[] SpeedArray;
+    public List<Speed> SpeedList;
     
-    [SerializeField]
-    public Density _density;
+    [Header(nameof(Density))]
+    public Density DensityValue;
+    public Density[] DensityArray;
+    public List<Density> DensityList;
     
-    [SerializeField]
-    public Momentum _momentum;
+    [Header(nameof(Momentum))]
+    public Momentum MomentumValue;
+    public Momentum[] MomentumArray;
+    public List<Momentum> MomentumList;
     
-    [SerializeField]
-    public VolumetricFlowRate _volumetricFlowRate;
+    [Header(nameof(VolumetricFlowRate))]
+    public VolumetricFlowRate VolumetricFlowRateValue;
+    public VolumetricFlowRate[] VolumetricFlowRateArray;
+    public List<VolumetricFlowRate> VolumetricFlowRateList;
+    
+    [Header("Nested")]
+    public NestedClass NestedClassValue;
+}
+
+[Serializable]
+public class NestedClass {
+    public Duration DurationValue;
+    public Mass MassValue;
+    public Temperature TemperatureValue;
+    public Length LengthValue;
+    public Area AreaValue;
+    public Volume VolumeValue;
+    public Speed SpeedValue;
+    public Density DensityValue;
+    public Momentum MomentumValue;
+    public VolumetricFlowRate VolumetricFlowRateValue;
 }

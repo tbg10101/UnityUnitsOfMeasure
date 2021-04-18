@@ -1,46 +1,40 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Software10101.Units {
+	// ideally the entire struct would be readonly
+	// however, Unity does not serialize readonly fields
+	// this is unfortunate but we can enforce immutability by not exposing the value publicly
 	[Serializable]
-	public readonly struct Length : IEquatable<Length>, IComparable<Length>, ISerializable {
+	public struct Length : IEquatable<Length>, IComparable<Length>, ISerializable {
 		private const string UnitString = "m";
 
-		public static readonly Length ZeroLength       =             0.0;         // km
-		public static readonly Length Micrometer       =             0.000000001; // km
-		public static readonly Length Millimeter       =             0.000001;    // km
-		public static readonly Length Centimeter       =             0.00001;     // km
-		public static readonly Length Meter            =             0.001;       // km
-		public static readonly Length Kilometer        =             1.0;         // km
-		public static readonly Length EarthRadius      =          6371.0;         // km
-		public static readonly Length SolarRadius      =        695700.0;         // km
-		public static readonly Length AstronomicalUnit =     149597870.7;         // km
-		public static readonly Length LightYear        = 9460730472580.8;         // km
-		public static readonly Length MaxLength        = double.MaxValue;
+		public static readonly Length ZeroLength       = new Length();
+		public static readonly Length Micrometer       = new Length { _kilometers =             0.000000001 };
+		public static readonly Length Millimeter       = new Length { _kilometers =             0.000001 };
+		public static readonly Length Centimeter       = new Length { _kilometers =             0.00001 };
+		public static readonly Length Meter            = new Length { _kilometers =             0.001 };
+		public static readonly Length Kilometer        = new Length { _kilometers =             1.0 };
+		public static readonly Length EarthRadius      = new Length { _kilometers =          6371.0 };
+		public static readonly Length SolarRadius      = new Length { _kilometers =        695700.0 };
+		public static readonly Length LightSecond      = new Length { _kilometers =        299792.458 };
+		public static readonly Length AstronomicalUnit = new Length { _kilometers =     149597870.7 };
+		public static readonly Length LightYear        = new Length { _kilometers = 9460730472580.8 };
 
-		private readonly double _kilometers;
+		[SerializeField]
+		internal double _kilometers;
 
 		/////////////////////////////////////////////////////////////////////////////
 		// BOXING
 		/////////////////////////////////////////////////////////////////////////////
-		private Length(double km) {
-			_kilometers = km;
-		}
-
 		private Length(double l, Length unit) {
-			_kilometers = l * unit;
-		}
-
-		public static Length From(double km) {
-			return new Length(km);
+			_kilometers = l * unit._kilometers;
 		}
 
 		public static Length From(double l, Length unit) {
 			return new Length(l, unit);
-		}
-
-		public static implicit operator Length(double km) {
-			return From(km);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -50,77 +44,59 @@ namespace Software10101.Units {
 			return _kilometers / unit._kilometers;
 		}
 
-		public static implicit operator double(Length l) {
-			return l._kilometers;
-		}
-
 		/////////////////////////////////////////////////////////////////////////////
 		// SERIALIZATION
 		/////////////////////////////////////////////////////////////////////////////
+		private const string KilometersSerializedFieldName = "kilometers";
+
 		public Length(SerializationInfo info, StreamingContext context) {
-			_kilometers = info.GetDouble("kilometers");
+			_kilometers = info.GetDouble(KilometersSerializedFieldName);
 		}
 
 		public void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("kilometers", _kilometers);
+			info.AddValue(KilometersSerializedFieldName, _kilometers);
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// OPERATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Length operator +(Length first, Length second) {
-			return first._kilometers + second._kilometers;
-		}
-
-		public static Length operator +(Length first, double second) {
-			return first._kilometers + second;
-		}
-
-		public static Length operator +(double first, Length second) {
-			return first + second._kilometers;
+			return new Length { _kilometers = first._kilometers + second._kilometers };
 		}
 
 		public static Length operator -(Length first, Length second) {
-			return first._kilometers - second._kilometers;
-		}
-
-		public static Length operator -(Length first, double second) {
-			return first._kilometers - second;
-		}
-
-		public static Length operator -(double first, Length second) {
-			return first - second._kilometers;
+			return new Length { _kilometers = first._kilometers - second._kilometers };
 		}
 
 		public static Length operator *(Length first, double second) {
-			return first._kilometers * second;
+			return new Length { _kilometers = first._kilometers * second };
 		}
 
 		public static Length operator *(double first, Length second) {
-			return first * second._kilometers;
+			return new Length { _kilometers = first * second._kilometers };
 		}
 
 		public static double operator /(Length first, Length second) {
 			return first._kilometers / second._kilometers;
 		}
 
-		public static Speed operator /(Length first, Duration second) {
-			return Speed.From(first, second);
-		}
-
 		public static Length operator /(Length first, double second) {
-			return first._kilometers / second;
+			return new Length { _kilometers = first._kilometers / second };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
 		// MUTATORS
 		/////////////////////////////////////////////////////////////////////////////
 		public static Area operator *(Length first, Length second) {
-			return first._kilometers * second._kilometers;
+			return new Area { _kmSquared = first._kilometers * second._kilometers };
+		}
+
+		public static Speed operator /(Length first, Duration second) {
+			return new Speed(first, second);
 		}
 
 		public static Volume operator *(Length first, Area second) {
-			return first._kilometers * second.To(Area.SquareKilometer);
+			return new Volume { _kmCubed = first._kilometers * second._kmSquared };
 		}
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -138,6 +114,7 @@ namespace Software10101.Units {
 			return obj is Length other && Equals(other);
 		}
 
+		[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 		public override int GetHashCode() {
 			return _kilometers.GetHashCode();
 		}

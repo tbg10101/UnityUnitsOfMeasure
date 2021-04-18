@@ -206,7 +206,7 @@ GameObject:
   - component: {fileID: 1639305716}
   - component: {fileID: 1639305715}
   m_Layer: 0
-  m_Name: Example
+  m_Name: Examples
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -224,6 +224,99 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d2add1acb88b6041bbec7f2e2c8ad82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DurationValue:
+    _seconds: 0
+  DurationArray: []
+  DurationList: []
+  MassValue:
+    _kilograms: 0
+  MassArray: []
+  MassList: []
+  TemperatureValue:
+    _kelvin: 0
+  TemperatureArray: []
+  TemperatureList: []
+  LengthValue:
+    _kilometers: 0
+  LengthArray: []
+  LengthList: []
+  AreaValue:
+    _kmSquared: 1
+  AreaArray:
+  - _kmSquared: 2
+  AreaList:
+  - _kmSquared: 3
+  VolumeValue:
+    _kmCubed: 0
+  VolumeArray: []
+  VolumeList: []
+  SpeedValue:
+    _length:
+      _kilometers: 0
+    _duration:
+      _seconds: 0
+  SpeedArray: []
+  SpeedList: []
+  DensityValue:
+    _mass:
+      _kilograms: 0
+    _volume:
+      _kmCubed: 0
+  DensityArray: []
+  DensityList: []
+  MomentumValue:
+    _mass:
+      _kilograms: 0
+    _speed:
+      _length:
+        _kilometers: 0
+      _duration:
+        _seconds: 0
+  MomentumArray: []
+  MomentumList: []
+  VolumetricFlowRateValue:
+    _volume:
+      _kmCubed: 0
+    _duration:
+      _seconds: 0
+  VolumetricFlowRateArray: []
+  VolumetricFlowRateList: []
+  NestedClassValue:
+    DurationValue:
+      _seconds: 0
+    MassValue:
+      _kilograms: 0
+    TemperatureValue:
+      _kelvin: 0
+    LengthValue:
+      _kilometers: 0
+    AreaValue:
+      _kmSquared: 4
+    VolumeValue:
+      _kmCubed: 0
+    SpeedValue:
+      _length:
+        _kilometers: 0
+      _duration:
+        _seconds: 0
+    DensityValue:
+      _mass:
+        _kilograms: 0
+      _volume:
+        _kmCubed: 0
+    MomentumValue:
+      _mass:
+        _kilograms: 0
+      _speed:
+        _length:
+          _kilometers: 0
+        _duration:
+          _seconds: 0
+    VolumetricFlowRateValue:
+      _volume:
+        _kmCubed: 0
+      _duration:
+        _seconds: 0
 --- !u!4 &1639305716
 Transform:
   m_ObjectHideFlags: 0
