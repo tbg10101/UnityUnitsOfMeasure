@@ -1,15 +1,25 @@
 {
   "name": "com.10101software.unitsofmeasure",
-  "description": "Units of measure library for Unity.",
-  "version": "2.0.0-preview.1",
-  "unity": "2019.4",
   "displayName": "Units of Measure",
+  "description": "Units of measure library for Unity.",
+  "version": "2.0.0-preview.2",
+  "unity": "2019.4",
+  "dependencies": {
+    "com.unity.test-framework": "1.1.30"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tbg10101/UnityUnitsOfMeasure.git"
   },
-  "type": "library",
-  "dependencies": {
-    "com.unity.test-framework": "1.1.30"
-  }
+  "keywords": [
+    "10101",
+    "utility",
+    "measure"
+  ],
+  "author": {
+    "name": "10101 Software",
+    "email": "10101software@gmail.com",
+    "url": "https://www.10101software.com/"
+  },
+  "type": "library"
 }
